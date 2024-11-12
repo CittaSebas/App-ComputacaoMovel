@@ -84,7 +84,7 @@ class Principal extends React.Component {
             <Text style={styles.botaoTexto}>Diárias</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.botao} onPress={() => this.goToPerfil()}>
-            <Text style={styles.botaoTexto}>Perfil</Text>
+            <Text style={styles.botaoTexto}>Área de Descanso</Text>
           </TouchableOpacity>
           
         </View>
@@ -130,7 +130,7 @@ class Missoes extends React.Component {
 
         if (novoXP >= 200) {
           novoNivel += 1;
-          novoXP = 0;
+          novoXP = novoXP - 200
         }
 
         this.props.route.params.atualizarXP(novoXP, novoNivel);
@@ -202,9 +202,20 @@ class MissoesDiarias extends React.Component {
     };
   }
 
-  componentDidMount() {
-    this.embaralharMissoes();
+  async componentDidMount() {
+    await this.carregarMissoesConcluidas();
     this.checkCooldown();
+  }
+
+  async carregarMissoesConcluidas() {
+    try {
+      const completadas = await AsyncStorage.getItem('completadasDiarias');
+      if (completadas !== null) {
+        this.setState({ completadas: JSON.parse(completadas) });
+      }
+    } catch (error) {
+      console.log('Erro ao carregar missões concluídas:', error);
+    }
   }
 
   embaralharMissoes = () => {
@@ -213,22 +224,26 @@ class MissoesDiarias extends React.Component {
   };
 
   checkCooldown = async () => {
-    try {
-      const ultimoLogin = await AsyncStorage.getItem('ultimoLogin');
-      if (ultimoLogin) {
-        const tempoPassado = Date.now() - parseInt(ultimoLogin);
-        const cooldown = 24 * 60 * 60 * 1000;
-        if (tempoPassado < cooldown) {
-          const tempoRestante = cooldown - tempoPassado;
-          const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
-          const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
-          this.setState({ cooldownAtivo: true, tempoRestante: `${horasRestantes}h ${minutosRestantes}m` });
-        }
+  try {
+    const ultimoLogin = await AsyncStorage.getItem('ultimoLogin');
+    if (ultimoLogin) {
+      const tempoPassado = Date.now() - parseInt(ultimoLogin);
+      const cooldown = 24 * 60 * 60 * 1000;
+      if (tempoPassado < cooldown) {
+        const tempoRestante = cooldown - tempoPassado;
+        const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
+        const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+        this.setState({ cooldownAtivo: true, tempoRestante: `${horasRestantes}h ${minutosRestantes}m` });
+      } else {
+        this.setState({ cooldownAtivo: false, completadas: [] }, () => {
+          this.embaralharMissoes();
+        });
       }
-    } catch (erro) {
-      console.log(erro);
     }
-  };
+  } catch (erro) {
+    console.log(erro);
+  }
+};
 
   marcarComoCompleta = (id, xpGanho) => {
     if (this.state.cooldownAtivo) {
@@ -245,13 +260,15 @@ class MissoesDiarias extends React.Component {
           novoXP = novoXP - 200;
         }
 
+        const novasCompletadas = [...prevState.completadas, id];
+        AsyncStorage.setItem('completadasDiarias', JSON.stringify(novasCompletadas));
         this.props.route.params.atualizarXP(novoXP, novoNivel);
         Vibration.vibrate(500);
 
         AsyncStorage.setItem('ultimoLogin', Date.now().toString());
 
         return {
-          completadas: [...prevState.completadas, id],
+          completadas: novasCompletadas,
           xp: novoXP,
           nivel: novoNivel,
           cooldownAtivo: true,
@@ -307,7 +324,12 @@ class Perfil extends React.Component {
 
     return (
       <View>
-        <Text style={styles.tituloPerfil}>  XP: {xp}   |   Nível: {nivel}</Text>
+        <Image
+          source={require('./assets/PerfilApp.jpeg')} 
+          style={styles.fotomissoes} 
+        />
+        <Text style={styles.tituloxp}>  XP: {xp}   |   Nível: {nivel}</Text>
+        
         <TouchableOpacity style={styles.botao} onPress={() => this.goToSobre()}>
             <Text style={styles.botaoTexto}>Sobre</Text>
         </TouchableOpacity>
@@ -321,7 +343,7 @@ class Sobre extends React.Component {
     return (
       <View>
         <Image
-          source={require('./assets/PerfilApp.jpeg')} 
+          source={require('./assets/SobreApp.jpeg')} 
           style={styles.fotomissoes} 
         />
         <Text style={styles.titulo}>  Projeto de Computação Movél</Text>
@@ -331,6 +353,8 @@ class Sobre extends React.Component {
         <Text>  - Sistema de Níveis mais avançado</Text>
         <Text>  - Melhora Visual</Text>
         <Text>  - Melhora na Lógica</Text>
+        <Text>  - Conquistas com Medalhas desbloqueaveis</Text>
+        <Text>  - Implementação de Missões Personalizáveis</Text>
       </View>
     );
   }
@@ -351,6 +375,12 @@ const styles = {
     marginBottom: 20,
   },
   titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  tituloxp: {
+    textAlign: 'center',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
