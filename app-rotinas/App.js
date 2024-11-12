@@ -1,55 +1,47 @@
 import * as React from 'react';
 import { Vibration, Image, TextInput, Text, View, Button, FlatList, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {MaterialCommunityIcons} from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Card, Paragraph, Title } from 'react-native-paper';
 import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-class Principal extends React.Component{
-  constructor(props){
-    super(props)
+class Principal extends React.Component {
+  constructor(props) {
+    super(props);
     this.state = {
-      usuario: "Nome do Usuário",
-      senha: undefined,
       xp: 0,
       nivel: 1, 
     };
   }
 
+  
+
   goToMissoes() {
-    this.props.navigation.navigate("Missões", {
-      usuario: this.state.usuario,
+    this.props.navigation.navigate("Missoes", {
       xp: this.state.xp,
       nivel: this.state.nivel,
       atualizarXP: this.atualizarXP.bind(this),
     });
   }
 
-  goToCadastra(){
-    this.props.navigation.navigate("Criar Usuário");
+  goToMissoesDiarias() {
+    this.props.navigation.navigate("MissoesDiarias", {
+      xp: this.state.xp,
+      nivel: this.state.nivel,
+      atualizarXP: this.atualizarXP.bind(this),
+    });
   }
 
-  async ler(){
-    try{
-      let senha = await AsyncStorage.getItem(this.state.usuario);
-      if(senha != null){
-        if(senha == this.state.senha){
-          alert("Logado!!!");
-          this.goToMissoes();
-        }else{
-          alert("Senha Incorreta!");
-        }
-      }else{
-        alert("Usuário não foi encontrado!");
-      }
-    }catch(erro){
-      console.log(erro);
-    }
+  goToPerfil() {
+    this.props.navigation.navigate("Perfil", {
+      xp: this.state.xp,
+      nivel: this.state.nivel,
+    });
+  }
+
+  goToSobre() {
+    this.props.navigation.navigate("Sobre");
   }
 
   atualizarXP(xp, nivel) {
@@ -63,64 +55,22 @@ class Principal extends React.Component{
           source={require('./assets/LogoApp.jpeg')} 
           style={styles.logo} 
         />
-        <Text style={styles.texto}>{"Usuário:"}</Text>
-        <TextInput
-          style={styles.entrada}
-          onChangeText={(texto) => this.setState({ usuario: texto })}
-        />
-        <Text style={styles.texto}>{"Senha:"}</Text>
-        <TextInput
-          style={styles.entrada}
-          secureTextEntry={true}
-          onChangeText={(texto) => this.setState({ senha: texto })}
-        />
         <View style={styles.botoes}>
-          <Button title="Entrar" onPress={() => this.ler()} />
-          <Button title="Criar Conta" onPress={() => this.goToCadastra()} />
+          <TouchableOpacity style={styles.botao} onPress={() => this.goToMissoes()}>
+            <Text style={styles.botaoTexto}>Missões</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.botao} onPress={() => this.goToMissoesDiarias()}>
+            <Text style={styles.botaoTexto}>Diárias</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.botao} onPress={() => this.goToPerfil()}>
+            <Text style={styles.botaoTexto}>Perfil</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.botao} onPress={() => this.goToSobre()}>
+            <Text style={styles.botaoTexto}>Sobre</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
-  }
-}
-
-class Cadastro extends React.Component{
-  constructor(props){
-    super(props);
-    this.state={
-      user: undefined,
-      password: undefined,
-    }
-  }
-
-  async gravar(){
-    try{
-      await AsyncStorage.setItem(this.state.user, this.state.password);
-      alert("Salvo com sucesso!!!")
-      this.props.navigation.navigate("Login");
-    }catch(erro){
-      alert("Erro!")
-    }
-  }
-
-  render(){
-    return(
-      <View style={styles.container}>
-        <Text style={styles.texto}>{"Cadastrar Usuário:"}</Text>
-        <TextInput
-          style={styles.entrada}
-          onChangeText={(texto) => this.setState({ user: texto })}
-        />
-        <Text style={styles.texto}>{"Cadastrar Senha:"}</Text>
-        <TextInput
-          style={styles.entrada}
-          secureTextEntry={true}
-          onChangeText={(texto) => this.setState({ password: texto })}
-        />
-        <View style={styles.botaocadastra}>
-          <Button title="Cadastrar" onPress={() => this.gravar()} />
-        </View>
-      </View>
-    )
   }
 }
 
@@ -138,7 +88,7 @@ class Missoes extends React.Component {
         { id: '7', descricao: 'Mande mensagem para algum amigo', xp: 10 },
         { id: '8', descricao: 'Tome banho', xp: 10 },
       ],
-      completadas: [], 
+      completadas: [],
       xp: this.props.route.params.xp,
       nivel: this.props.route.params.nivel,
     };
@@ -177,7 +127,6 @@ class Missoes extends React.Component {
   };
 
   render() {
-    
     const missoesParaMostrar = this.state.missoes.slice(0, 5);
 
     return (
@@ -185,30 +134,18 @@ class Missoes extends React.Component {
         <Image
           source={require('./assets/MissoesApp.jpeg')} 
           style={styles.fotomissoes} 
-          />
+        />
         <FlatList
           data={missoesParaMostrar}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 15,
-                padding: 10,
-                backgroundColor: '#f0f0f0',
-                borderRadius: 5,
-              }}
-            >
-            
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 5 }}>
               <TouchableOpacity
                 style={{
                   width: 30,
                   height: 30,
                   borderRadius: 15,
-                  backgroundColor: this.state.completadas.includes(item.id)
-                    ? 'green'
-                    : 'gray',
+                  backgroundColor: this.state.completadas.includes(item.id) ? 'green' : 'gray',
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginRight: 10,
@@ -238,10 +175,11 @@ class MissoesDiarias extends React.Component {
         { id: '5', descricao: '120xp', xp: 120 },
         { id: '6', descricao: '130xp', xp: 130 },
       ],
-      completadas: [], 
+      completadas: [],
       xp: this.props.route.params.xp,
       nivel: this.props.route.params.nivel,
       cooldownAtivo: false,
+      tempoRestante: null,
     };
   }
 
@@ -260,9 +198,12 @@ class MissoesDiarias extends React.Component {
       const ultimoLogin = await AsyncStorage.getItem('ultimoLogin');
       if (ultimoLogin) {
         const tempoPassado = Date.now() - parseInt(ultimoLogin);
-        const cooldown = 1 * 1 * 5 * 1000;
+        const cooldown = 24 * 60 * 60 * 1000;
         if (tempoPassado < cooldown) {
-          this.setState({ cooldownAtivo: true });
+          const tempoRestante = cooldown - tempoPassado;
+          const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
+          const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+          this.setState({ cooldownAtivo: true, tempoRestante: `${horasRestantes}h ${minutosRestantes}m` });
         }
       }
     } catch (erro) {
@@ -272,7 +213,7 @@ class MissoesDiarias extends React.Component {
 
   marcarComoCompleta = (id, xpGanho) => {
     if (this.state.cooldownAtivo) {
-      alert('Missão diária em cooldown. Tente novamente após 24 horas.');
+      alert(`Missão diária em cooldown. Tente novamente após ${this.state.tempoRestante}.`);
       return;
     }
     if (!this.state.completadas.includes(id)) {
@@ -282,7 +223,7 @@ class MissoesDiarias extends React.Component {
 
         if (novoXP >= 200) {
           novoNivel += 1;
-          novoXP = 0;
+          novoXP = novoXP - 200;
         }
 
         this.props.route.params.atualizarXP(novoXP, novoNivel);
@@ -301,7 +242,6 @@ class MissoesDiarias extends React.Component {
   };
 
   render() {
-    
     const missoesParaMostrar = this.state.missoes.slice(0, 3);
 
     return (
@@ -309,30 +249,18 @@ class MissoesDiarias extends React.Component {
         <Image
           source={require('./assets/DiariasApp.jpeg')} 
           style={styles.fotomissoes} 
-          />
+        />
         <FlatList
           data={missoesParaMostrar}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 15,
-                padding: 10,
-                backgroundColor: '#f0f0f0',
-                borderRadius: 5,
-              }}
-            >
-            
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 5 }}>
               <TouchableOpacity
                 style={{
                   width: 30,
                   height: 30,
                   borderRadius: 15,
-                  backgroundColor: this.state.completadas.includes(item.id)
-                    ? 'green'
-                    : 'gray',
+                  backgroundColor: this.state.completadas.includes(item.id) ? 'green' : 'gray',
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginRight: 10,
@@ -350,73 +278,36 @@ class MissoesDiarias extends React.Component {
   }
 }
 
-class Perfil extends React.Component{
-  render(){
-    const { usuario, xp, nivel } = this.props.route.params;
-    return(
+class Perfil extends React.Component {
+  render() {
+    const { xp, nivel } = this.props.route.params;
+
+    return (
+      <View>
+        <Text style={styles.tituloPerfil}>  XP: {xp}   |   Nível: {nivel}</Text>
+      </View>
+    );
+  }
+}
+
+class Sobre extends React.Component {
+  render() {
+    return (
       <View>
         <Image
-          source={require('./assets/PerfilApp.jpg')} 
-          style={styles.fotoperfil} 
-          />
-        <Text style={ { fontSize: 24, fontWeight: 'bold' }}>{"Bem vindo " + usuario}</Text>
-        <Text>{"Experiência: " + xp}</Text>
-        <Text>{"Nível: " + nivel}</Text>
+          source={require('./assets/PerfilApp.jpeg')} 
+          style={styles.fotomissoes} 
+        />
+        <Text style={styles.titulo}>  Projeto de Computação Movél</Text>
+        <Text>  Feito por : Sebastian Citta</Text>
+        <Text style={styles.subtitulo}>  Mudanças para o Futuro:</Text>
+        <Text>  - Adição de Contas</Text>
+        <Text>  - Sistema de Níveis mais avançado</Text>
+        <Text>  - Melhora Visual</Text>
+        <Text>  - Melhora na Lógica</Text>
       </View>
-    )
+    );
   }
-}
-
-
-class App extends React.Component {
-  render() {
-    return(
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Login" component={PrincipalStack} options={{ headerShown: false }} />
-          <Stack.Screen name="Criar Usuário" component={Cadastro} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    )
-  }
-}
-
-
-function PrincipalStack() {
-  return(
-    <Stack.Navigator>
-      <Stack.Screen name="Login" component={Principal}/>
-      <Stack.Screen
-        name="Missões"
-        component={TabMissoes}
-      />
-    </Stack.Navigator>
-  )
-}
-
-function TabMissoes({ route }){
-  const { usuario, xp, nivel, atualizarXP } = route.params;
-  return(
-      <Tab.Navigator  screenOptions={({ route }) => ({
-            tabBarIcon: ({ color, size }) => {
-              let iconName;
-              if (route.name === 'Missões') {
-                iconName = 'walk';
-              } else if (route.name === 'Perfil') {
-                iconName = 'account';
-              } else if(route.name === 'Diarias'){
-                iconName = 'run'
-              }
-
-              return <MaterialCommunityIcons name={iconName} color={color} size={size} />;
-            },
-          })}
-          >
-        <Tab.Screen name="Missões" component={Missoes} initialParams={{ usuario, xp, nivel, atualizarXP }} />
-        <Tab.Screen name="Diarias" component={MissoesDiarias} initialParams={{ usuario, xp, nivel, atualizarXP }} />
-      <Tab.Screen name="Perfil" component={Perfil} initialParams={{ usuario, xp, nivel }} />
-      </Tab.Navigator>
-  )
 }
 
 const styles = {
@@ -425,11 +316,42 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'white-grey',
   },
-
+  tituloPerfil: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  subtitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  botoes: {
+    width: '100%',
+    padding: 10,
+  },
+  botao: {
+    backgroundColor: '#77C3EC', // cor parecida ao baby blue q achei no google
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 50,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  botaoTexto: {
+    color: 'Black',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   logo: {
-    
     width: 200, 
     height: 200,
     marginBottom: 20,
@@ -437,39 +359,23 @@ const styles = {
   },
   fotomissoes:{
     alignSelf: 'center',
-    width: 100, 
-    height: 100,
+    width: 150, 
+    height: 150,
     marginBottom: 20,
-    borderRadius: 50, 
+    borderRadius: 75, 
   },
-  fotoperfil:{
-    flex: 1
-  },
-
-  texto: {
-    fontSize: 16,
-    marginBottom: 8,
-    alignSelf: 'flex-start',
-  },
-  entrada: {
-    width: '100%',
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    marginBottom: 16,
-    borderRadius: 5,
-  },
-  botoes: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 30,
-    width: '100%',
-  },
-  botaocadastra:{
-    padding: 30,
-    width: '100%',
-  }
 };
 
-export default App;
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Principal" component={Principal} />
+        <Stack.Screen name="Missoes" component={Missoes} />
+        <Stack.Screen name="MissoesDiarias" component={MissoesDiarias} />
+        <Stack.Screen name="Perfil" component={Perfil} />
+        <Stack.Screen name="Sobre" component={Sobre} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
