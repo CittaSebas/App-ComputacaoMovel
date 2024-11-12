@@ -15,7 +15,36 @@ class Principal extends React.Component {
     };
   }
 
+  async componentDidMount() {
+    await this.carregarDados();
+  }
+
+  async carregarDados() {
+    try {
+      const xp = await AsyncStorage.getItem('xp');
+      const nivel = await AsyncStorage.getItem('nivel');
+      if (xp !== null && nivel !== null) {
+        this.setState({ xp: parseInt(xp), nivel: parseInt(nivel) });
+      }
+    } catch (error) {
+      console.log('Erro ao carregar dados:', error);
+    }
+  }
   
+  async salvarDados(xp, nivel) {
+    try {
+      await AsyncStorage.setItem('xp', xp.toString());
+      await AsyncStorage.setItem('nivel', nivel.toString());
+    } catch (error) {
+      console.log('Erro ao salvar dados:', error);
+    }
+  }
+
+  atualizarXP(xp, nivel) {
+    this.setState({ xp, nivel }, () => {
+      this.salvarDados(xp, nivel);
+    });
+  }
 
   goToMissoes() {
     this.props.navigation.navigate("Missoes", {
@@ -40,14 +69,6 @@ class Principal extends React.Component {
     });
   }
 
-  goToSobre() {
-    this.props.navigation.navigate("Sobre");
-  }
-
-  atualizarXP(xp, nivel) {
-    this.setState({ xp, nivel });
-  }
-
   render() {
     return (
       <View style={styles.container}>
@@ -65,9 +86,7 @@ class Principal extends React.Component {
           <TouchableOpacity style={styles.botao} onPress={() => this.goToPerfil()}>
             <Text style={styles.botaoTexto}>Perfil</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.botao} onPress={() => this.goToSobre()}>
-            <Text style={styles.botaoTexto}>Sobre</Text>
-          </TouchableOpacity>
+          
         </View>
       </View>
     );
@@ -279,12 +298,19 @@ class MissoesDiarias extends React.Component {
 }
 
 class Perfil extends React.Component {
+  goToSobre() {
+    this.props.navigation.navigate("Sobre");
+  }
+
   render() {
     const { xp, nivel } = this.props.route.params;
 
     return (
       <View>
         <Text style={styles.tituloPerfil}>  XP: {xp}   |   Nível: {nivel}</Text>
+        <TouchableOpacity style={styles.botao} onPress={() => this.goToSobre()}>
+            <Text style={styles.botaoTexto}>Sobre</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -339,7 +365,7 @@ const styles = {
     padding: 10,
   },
   botao: {
-    backgroundColor: '#77C3EC', // cor parecida ao baby blue q achei no google
+    backgroundColor: '#77C3EC', // cor parecida ao baby blue que achei no google
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 50,
