@@ -1,3 +1,4 @@
+// importacoes
 import * as React from 'react';
 import { Vibration, Image, TextInput, Text, View, Button, FlatList, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,19 +7,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createStackNavigator();
 
+// tela principal do aplicativo
 class Principal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      xp: 0,
-      nivel: 1, 
+      xp: 0,    // Estado inicial de XP
+      nivel: 1, // Estado inicial de nivel
     };
   }
 
+  // ao montar chama funcao de carregar os dados
   async componentDidMount() {
     await this.carregarDados();
   }
 
+  // funcao que carrega os dados xp e nivel do asyncstorage
   async carregarDados() {
     try {
       const xp = await AsyncStorage.getItem('xp');
@@ -31,6 +35,7 @@ class Principal extends React.Component {
     }
   }
   
+  // funcao que salva os dados no asyncstorage
   async salvarDados(xp, nivel) {
     try {
       await AsyncStorage.setItem('xp', xp.toString());
@@ -40,12 +45,14 @@ class Principal extends React.Component {
     }
   }
 
+  // funcao chamada ao completar missao que guarda o xp atualizado
   atualizarXP(xp, nivel) {
     this.setState({ xp, nivel }, () => {
       this.salvarDados(xp, nivel);
     });
   }
 
+  // para navegar para a tela de missoes
   goToMissoes() {
     this.props.navigation.navigate("Missoes", {
       xp: this.state.xp,
@@ -54,6 +61,7 @@ class Principal extends React.Component {
     });
   }
 
+  // para navegar para a tela de diarias
   goToMissoesDiarias() {
     this.props.navigation.navigate("MissoesDiarias", {
       xp: this.state.xp,
@@ -62,6 +70,7 @@ class Principal extends React.Component {
     });
   }
 
+  // para navegar para a tela de perfil
   goToPerfil() {
     this.props.navigation.navigate("Perfil", {
       xp: this.state.xp,
@@ -69,6 +78,7 @@ class Principal extends React.Component {
     });
   }
 
+  // botoes para ir para as outras telas
   render() {
     return (
       <View style={styles.container}>
@@ -93,11 +103,12 @@ class Principal extends React.Component {
   }
 }
 
+// tela de missoes
 class Missoes extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      missoes: [
+      missoes: [ // array das missoes
         { id: '1', descricao: 'Faça 10 minutos de exercício', xp: 10 },
         { id: '2', descricao: 'Leia um capítulo de um livro', xp: 10 },
         { id: '3', descricao: 'Medite por 5 minutos', xp: 10 },
@@ -105,36 +116,40 @@ class Missoes extends React.Component {
         { id: '5', descricao: 'Aprenda algo novo', xp: 10 },
         { id: '6', descricao: 'Faça sua cama', xp: 10 },
         { id: '7', descricao: 'Mande mensagem para algum amigo', xp: 10 },
-        { id: '8', descricao: 'Tome banho', xp: 10 },
+        { id: '8', descricao: '10xp', xp: 10 },
+        { id: '9', descricao: '10xp', xp: 10 },
       ],
-      completadas: [],
-      xp: this.props.route.params.xp,
-      nivel: this.props.route.params.nivel,
+      completadas: [],                        // guarda as missoes ja completadas
+      xp: this.props.route.params.xp,         // pega xp do usuario que foi pego na tela principal
+      nivel: this.props.route.params.nivel,   // mesma coisa que o xp mas para nivel
     };
   }
 
+  // faz com que sempre que a tela é aberta as missoes sejam embaralhadas
   componentDidMount() {
     this.embaralharMissoes();
   }
 
+  // funcao que embaralha as missoes, para que as missões mostradas sejam diferentes
   embaralharMissoes = () => {
     const missoesEmbaralhadas = [...this.state.missoes].sort(() => 0.5 - Math.random());
     this.setState({ missoes: missoesEmbaralhadas.slice(0, 5) });
   };
 
+  // funcao acionada ao completar missao que aumenta o xp
   marcarComoCompleta = (id, xpGanho) => {
     if (!this.state.completadas.includes(id)) {
       this.setState((prevState) => {
         let novoXP = prevState.xp + xpGanho;
         let novoNivel = prevState.nivel;
 
-        if (novoXP >= 200) {
+        if (novoXP >= 200) { // a cada 200 de xp usuario sobe de nivel
           novoNivel += 1;
           novoXP = novoXP - 200
         }
 
         this.props.route.params.atualizarXP(novoXP, novoNivel);
-        Vibration.vibrate(500);
+        Vibration.vibrate(500); // faz o celular vibrar
 
         return {
           completadas: [...prevState.completadas, id],
@@ -146,7 +161,7 @@ class Missoes extends React.Component {
   };
 
   render() {
-    const missoesParaMostrar = this.state.missoes.slice(0, 5);
+    const missoesParaMostrar = this.state.missoes.slice(0, 5); // pega 5 missoes para mostrar na tela
 
     return (
       <View style={{ flex: 1, padding: 20 }}>
@@ -182,14 +197,15 @@ class Missoes extends React.Component {
   }
 }
 
+// tela de diarias
 class MissoesDiarias extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      missoes: [
-        { id: '1', descricao: '150xp', xp: 150 },
-        { id: '2', descricao: '140xp', xp: 140 },
-        { id: '3', descricao: '110xp', xp: 110 },
+      missoes: [ // array de missoes
+        { id: '1', descricao: 'Tome banho', xp: 150 },
+        { id: '2', descricao: 'Lave os pratos', xp: 140 },
+        { id: '3', descricao: 'Limpe a Casa', xp: 110 },
         { id: '4', descricao: '100xp', xp: 100 },
         { id: '5', descricao: '120xp', xp: 120 },
         { id: '6', descricao: '130xp', xp: 130 },
@@ -197,15 +213,17 @@ class MissoesDiarias extends React.Component {
       completadas: [],
       xp: this.props.route.params.xp,
       nivel: this.props.route.params.nivel,
-      cooldownAtivo: false,
-      tempoRestante: null,
+      cooldownAtivo: false, // cooldown para que as missões so possam ser completadas 1 vez ao dia
+      tempoRestante: null, 
     };
   }
 
+  // ao montar pega as missoes concluidas como para que ja fique marcada que foi feita e verifica cooldown
   async componentDidMount() {
     await this.carregarMissoesConcluidas();
     this.checkCooldown();
   }
+
 
   async carregarMissoesConcluidas() {
     try {
@@ -218,11 +236,13 @@ class MissoesDiarias extends React.Component {
     }
   }
 
+  // funcao que embaralha missoes, mas esta pega apenas 3 missoes em vez de 5 e é chamada apenas a cada 24 horas
   embaralharMissoes = () => {
     const missoesEmbaralhadas = [...this.state.missoes].sort(() => 0.5 - Math.random());
     this.setState({ missoes: missoesEmbaralhadas.slice(0, 3) });
   };
 
+  // verifica cooldown e da alerta na tela mostrando o tempo faltante
   checkCooldown = async () => {
   try {
     const ultimoLogin = await AsyncStorage.getItem('ultimoLogin');
@@ -245,6 +265,7 @@ class MissoesDiarias extends React.Component {
   }
 };
 
+  // mesma logica que na classe missoes
   marcarComoCompleta = (id, xpGanho) => {
     if (this.state.cooldownAtivo) {
       alert(`Missão diária em cooldown. Tente novamente após ${this.state.tempoRestante}.`);
@@ -314,18 +335,19 @@ class MissoesDiarias extends React.Component {
   }
 }
 
+// tela de perfil
 class Perfil extends React.Component {
-  goToSobre() {
+  goToSobre() { // para navegar para a tela sobre
     this.props.navigation.navigate("Sobre");
   }
 
   render() {
-    const { xp, nivel } = this.props.route.params;
+    const { xp, nivel } = this.props.route.params; // pega xp e nivel para imprimir na tela
 
     return (
       <View>
         <Image
-          source={require('./assets/PerfilApp.jpeg')} 
+          source={require('./assets/PerfilApp.jpeg')} // imagem
           style={styles.fotomissoes} 
         />
         <Text style={styles.tituloxp}>  XP: {xp}   |   Nível: {nivel}</Text>
@@ -338,6 +360,7 @@ class Perfil extends React.Component {
   }
 }
 
+// tela sobre
 class Sobre extends React.Component {
   render() {
     return (
@@ -360,6 +383,7 @@ class Sobre extends React.Component {
   }
 }
 
+// estilos para botoes textos e mais
 const styles = {
   container: {
     flex: 1,
@@ -421,6 +445,7 @@ const styles = {
     borderRadius: 75, 
   },
 };
+
 
 export default function App() {
   return (
